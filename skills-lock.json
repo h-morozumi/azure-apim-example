@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "Bicep AVM Mastery": {
+      "source": "fabioc-aloha/lithium",
+      "sourceType": "github",
+      "computedHash": "8f5bb5b563685ab8d022d54e6f3777c7f30d4130a2d7627e3b66f71e8cbd8191"
+    },
+    "microsoft-code-reference": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "2a86c1b1a876f777a8f99e0e27a9b2d5fa360352bd2dd396102e3110212dd296"
+    },
+    "microsoft-docs": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "e49127ff2162330ac79bfde9e7ed1297df15be9ade09164fdebfe697153fcc36"
+    },
+    "update-avm-modules-in-bicep": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "8071b53c14b949325cb055b69eb44afee07d5166d73ab5799205377880198277"
+    }
+  }
+}
