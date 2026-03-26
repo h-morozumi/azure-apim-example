@@ -28,6 +28,9 @@ param skuCapacity int?
 @description('Enable the Developer Portal')
 param enableDeveloperPortal bool = false
 
+@description('Diagnostic settings for the resource')
+param diagnosticSettings array?
+
 @description('Tags for the resource')
 param tags object = {}
 
@@ -40,6 +43,7 @@ module apim 'br/public:avm/res/api-management/service:0.14.1' = {
     sku: sku
     skuCapacity: skuCapacity ?? (sku == 'Consumption' ? 0 : 1)
     enableDeveloperPortal: enableDeveloperPortal
+    diagnosticSettings: diagnosticSettings
     tags: tags
   }
 }

@@ -1,4 +1,5 @@
 {
   "resourcesResourceGroups": "rg-",
-  "apiManagementService": "apim-"
+  "apiManagementService": "apim-",
+  "operationalInsightsWorkspaces": "log-"
 }

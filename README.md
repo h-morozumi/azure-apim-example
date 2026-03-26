@@ -3,6 +3,8 @@
 Azure API Management (APIM) の基本機能を体験するハンズオン資料です。  
 2 種類の SKU（**Basic V2** と **Developer**）を実際にデプロイし、API の登録からポリシー適用までを段階的に学びます。
 
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fh-morozumi%2Fazure-apim-example%2Fmain%2Finfra%2Fmain.json)
+
 ## 前提条件
 
 - Azure サブスクリプション
