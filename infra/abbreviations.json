@@ -1,5 +1,6 @@
 {
   "resourcesResourceGroups": "rg-",
   "apiManagementService": "apim-",
-  "operationalInsightsWorkspaces": "log-"
+  "operationalInsightsWorkspaces": "log-",
+  "insightsComponents": "appi-"
 }

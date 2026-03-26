@@ -18,11 +18,14 @@ Azure API Management (APIM) の基本機能を体験するハンズオン資料�
 ├── azure.yaml                  # azd プロジェクト定義
 ├── AGENTS.md                   # AI エージェント向けルール
 ├── infra/
-│   ├── main.bicep              # メインテンプレート（APIM × 2）
+│   ├── main.bicep              # メインテンプレート（APIM × 2 + Log Analytics）
 │   ├── main.bicepparam         # パラメータファイル
+│   ├── main.json               # ARM テンプレート（Deploy to Azure 用）
 │   ├── abbreviations.json      # リソース名の略称定義
 │   └── modules/
-│       └── api-management.bicep  # APIM モジュール（AVM 使用）
+│       ├── api-management.bicep  # APIM モジュール（AVM 使用）
+│       ├── app-insights.bicep    # Application Insights モジュール（AVM 使用）
+│       └── log-analytics.bicep   # Log Analytics モジュール（AVM 使用）
 └── README.md
 ```
 
@@ -32,6 +35,17 @@ Azure API Management (APIM) の基本機能を体験するハンズオン資料�
 |---------|-----|------|
 | API Management (Basic V2) | BasicV2 | v2 SKU の動作確認 |
 | API Management (Developer) | Developer | v1 SKU の動作確認・比較 |
+| Application Insights | ― | APIM の分析ダッシュボード・テレメトリ収集 |
+| Log Analytics ワークスペース | PerGB2018 | APIM の診断ログ収集 |
+
+デプロイ時に以下の API が両方の APIM インスタンスに自動登録されます：
+
+| API 名 | パス | バックエンド |
+|--------|------|-------------|
+| Custom Echo API | `/custom-echo` | `https://echoapi.cloudapp.net/api` |
+| JSONPlaceholder | `/jsonplaceholder` | `https://jsonplaceholder.typicode.com` |
+
+> **注意**: Developer SKU には上記に加え、組み込みの **Echo API**（パス `/echo`）が既定で含まれます。
 
 ---
 
@@ -67,23 +81,27 @@ APIM_BASICV2_NAME=apim-basicv2-xxxxx
 APIM_BASICV2_GATEWAY_URL=https://apim-basicv2-xxxxx.azure-api.net
 APIM_DEVELOPER_NAME=apim-dev-xxxxx
 APIM_DEVELOPER_GATEWAY_URL=https://apim-dev-xxxxx.azure-api.net
+LOG_ANALYTICS_NAME=log-xxxxx
+APP_INSIGHTS_NAME=appi-xxxxx
 ```
 
 ---
 
-## Step 1: Echo API で基本操作を学ぶ
+## Step 1: Custom Echo API で基本操作を学ぶ
 
-Echo API は APIM にデフォルトで組み込まれている API です。セットアップ不要ですぐに使えます。
+Custom Echo API は Bicep テンプレートにより自動登録された API です。デプロイ直後からすぐに使えます。
 
-### 1-1. Azure ポータルで Echo API を確認
+> **Developer SKU の場合**: 組み込みの Echo API（パス `/echo`）も別途存在します。ここでは Bicep でデプロイされた Custom Echo API（パス `/custom-echo`）を使用します。
+
+### 1-1. Azure ポータルで Custom Echo API を確認
 
 1. [Azure ポータル](https://portal.azure.com) を開く
 2. デプロイされた API Management（Basic V2）を開く
-3. 左メニュー **[API]** → **Echo API** を選択
+3. 左メニュー **[API]** → **Custom Echo API** を選択
 
 ### 1-2. テストコンソールで API を呼び出す
 
-1. **Echo API** → **Retrieve resource** オペレーションを選択
+1. **Custom Echo API** → **Retrieve resource** オペレーションを選択
 2. **[Test]** タブをクリック
 3. **[Send]** をクリック
 4. レスポンスの **200 OK** と内容を確認
@@ -99,8 +117,8 @@ Echo API は APIM にデフォルトで組み込まれている API です。セ
 APIM_URL="<APIM_BASICV2_GATEWAY_URL>"
 SUB_KEY="<your-subscription-key>"
 
-# Echo API を呼び出し
-curl -s "${APIM_URL}/echo/resource?param1=sample" \
+# Custom Echo API を呼び出し
+curl -s "${APIM_URL}/custom-echo/resource?param1=sample" \
   -H "Ocp-Apim-Subscription-Key: ${SUB_KEY}" | jq .
 ```
 
@@ -108,57 +126,32 @@ curl -s "${APIM_URL}/echo/resource?param1=sample" \
 
 ```bash
 # キーなしで呼び出すと 401 エラー
-curl -s -o /dev/null -w "%{http_code}" "${APIM_URL}/echo/resource?param1=sample"
+curl -s -o /dev/null -w "%{http_code}" "${APIM_URL}/custom-echo/resource?param1=sample"
 # → 401
 ```
 
 ---
 
-## Step 2: JSONPlaceholder を外部 API として登録
+## Step 2: JSONPlaceholder API を操作する
 
-[JSONPlaceholder](https://jsonplaceholder.typicode.com) は登録不要・認証不要のパブリック REST API です。
+[JSONPlaceholder](https://jsonplaceholder.typicode.com) は認証不要のパブリック REST API です。  
+Bicep テンプレートにより自動登録済みで、以下のオペレーションが利用可能です：
 
-### 2-1. API を手動で登録
+| オペレーション | メソッド | パス |
+|--------------|---------|------|
+| Get Posts | GET | `/posts` |
+| Get Post by ID | GET | `/posts/{id}` |
+| Create Post | POST | `/posts` |
+| Get Users | GET | `/users` |
+| Get Comments | GET | `/comments` |
+
+### 2-1. Azure ポータルで確認
 
 1. Azure ポータルで APIM（Basic V2）を開く
-2. **[API]** → **[+ Add API]** → **HTTP** を選択
-3. 以下を入力:
+2. **[API]** → **JSONPlaceholder** を選択
+3. 登録されたオペレーション一覧を確認
 
-| 項目 | 値 |
-|-----|-----|
-| Display name | `JSONPlaceholder` |
-| Name | `jsonplaceholder` |
-| Web service URL | `https://jsonplaceholder.typicode.com` |
-| API URL suffix | `jsonplaceholder` |
-
-4. **[Create]** をクリック
-
-### 2-2. オペレーションを追加
-
-**Get Posts（一覧取得）**
-
-| 項目 | 値 |
-|-----|-----|
-| Display name | `Get Posts` |
-| URL | GET `/posts` |
-
-**Get Post by ID（1件取得）**
-
-| 項目 | 値 |
-|-----|-----|
-| Display name | `Get Post by ID` |
-| URL | GET `/posts/{id}` |
-
-Template parameters に `id`（type: integer）を追加。
-
-**Create Post（作成）**
-
-| 項目 | 値 |
-|-----|-----|
-| Display name | `Create Post` |
-| URL | POST `/posts` |
-
-### 2-3. テストコンソールで動作確認
+### 2-2. テストコンソールで動作確認
 
 ```bash
 # 投稿一覧の取得
@@ -290,7 +283,8 @@ https://<APIM名>.developer.azure-api.net
 
 ## Step 5: Basic V2 と Developer SKU を比較する
 
-同じ JSONPlaceholder API を Developer SKU 側にも登録し、以下を比較してみましょう：
+両方の APIM インスタンスに同じ API（Custom Echo API・JSONPlaceholder）がデプロイ済みです。  
+以下の観点で比較してみましょう：
 
 | 比較項目 | Basic V2 | Developer |
 |---------|----------|-----------|

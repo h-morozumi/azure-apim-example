@@ -31,6 +31,12 @@ param enableDeveloperPortal bool = false
 @description('Diagnostic settings for the resource')
 param diagnosticSettings array?
 
+@description('APIs to create in the APIM instance')
+param apis array?
+
+@description('Loggers to configure in the APIM instance')
+param loggers array?
+
 @description('Tags for the resource')
 param tags object = {}
 
@@ -44,6 +50,8 @@ module apim 'br/public:avm/res/api-management/service:0.14.1' = {
     skuCapacity: skuCapacity ?? (sku == 'Consumption' ? 0 : 1)
     enableDeveloperPortal: enableDeveloperPortal
     diagnosticSettings: diagnosticSettings
+    apis: apis
+    loggers: loggers
     tags: tags
   }
 }
